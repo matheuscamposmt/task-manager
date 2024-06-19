@@ -1,0 +1,61 @@
+# Ignore compiled files #
+*.o
+*.out
+*.pyc
+*.class
+
+# Ignore temporary files #
+*.swp
+*~
+*.DS_Store
+
+# Ignore logs and databases #
+*.log
+*.sqlite
+
+# Ignore environment-specific files #
+.env
+.env.*
+
+# Ignore dependency directories #
+/node_modules
+/bower_components
+
+# Ignore macOS specific files #
+.DS_Store
+
+# Ignore IntelliJ IDEA files #
+.idea/
+
+# Ignore Visual Studio Code files #
+.vscode/
+
+# Ignore Jupyter Notebook checkpoints #
+.ipynb_checkpoints/
+
+# Ignore Python bytecode #
+__pycache__/
+
+# Ignore npm debug log #
+npm-debug.log*
+
+# Ignore yarn errors log #
+yarn-error.log
+
+# Ignore coverage directory #
+/coverage/
+
+# Ignore Jest snapshots #
+snapshot/
+
+# Ignore Parcel cache directory #
+.cache/
+
+# Ignore parcel-bundler cache directory #
+.parcel-cache/
+
+# Ignore ESLint cache #
+.eslintcache
+
+# Ignore any file named .gitignore itself #
+!.gitignore
