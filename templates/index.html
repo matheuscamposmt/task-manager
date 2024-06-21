@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Gestão de Tarefas Colaborativo</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <header>
+      <h1>Sistema de Gestão de Tarefas Colaborativo</h1>
+    </header>
+    <main>
+      <section id="login">
+        <h2>Login</h2>
+        <form id="loginForm">
+          <label for="username">Usuário:</label>
+          <input type="text" id="username" name="username" required />
+          <label for="password">Senha:</label>
+          <input type="password" id="password" name="password" required />
+          <button type="submit">Entrar</button>
+        </form>
+      </section>
+      <section id="tasks" style="display: none">
+        <h2>Minhas Tarefas</h2>
+        <button id="addTaskButton">Adicionar Tarefa</button>
+        <ul id="taskList"></ul>
+      </section>
+    </main>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+  </body>
+</html>
