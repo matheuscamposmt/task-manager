@@ -9,7 +9,7 @@ migrate = Migrate()
 jwt = JWTManager()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='templates')
     CORS(app, supports_credentials=True)
     app.config.from_object('app.config.Config')
 

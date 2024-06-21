@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, render_template
 from . import db
 from .models import User, Task
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,6 +6,11 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from flask_cors import cross_origin
 
 bp = Blueprint('api', __name__)
+
+@bp.route('/')
+def index():
+    return render_template('index.html')
+
 
 @bp.route('/register', methods=['POST'])
 def register():
