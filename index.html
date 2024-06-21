@@ -6,7 +6,7 @@
     <title>Sistema de Gestão de Tarefas Colaborativo</title>
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/styles.css') }}"
+      href="static/css/styles.css"
     />
   </head>
   <body>
@@ -17,7 +17,7 @@
       <section id="login">
         <h2>Login</h2>
         <form id="loginForm">
-          <label for="username">Usuário:</label>
+          <label for="username">Email:</label>
           <input type="text" id="username" name="username" required />
           <label for="password">Senha:</label>
           <input type="password" id="password" name="password" required />
@@ -30,6 +30,6 @@
         <ul id="taskList"></ul>
       </section>
     </main>
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="static/js/scripts.js"></script>
   </body>
 </html>

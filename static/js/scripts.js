@@ -9,16 +9,18 @@ document.getElementById('addTaskButton').addEventListener('click', function() {
 
 function login() {
     // Implementar a lógica de login
-    const username = document.getElementById('username').value;
+    const email = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const base_url = 'http://localhost:5000';
 
     // Exemplo de chamada à API
-    fetch('/api/login', {
+    fetch(base_url+'/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
     })
     .then(response => response.json())
     .then(data => {
@@ -37,7 +39,7 @@ function login() {
 
 function loadTasks() {
     // Implementar a lógica para carregar as tarefas
-    fetch('/api/tasks')
+    fetch(base_url+'/tasks')
         .then(response => response.json())
         .then(tasks => {
             const taskList = document.getElementById('taskList');
@@ -53,7 +55,7 @@ function loadTasks() {
 function addTask() {
     const taskDescription = prompt('Descrição da tarefa:');
     if (taskDescription) {
-        fetch('/api/tasks', {
+        fetch(base_url+'/tasks', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

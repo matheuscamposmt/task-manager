@@ -3,6 +3,7 @@ from . import db
 from .models import User, Task
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_cors import cross_origin
 
 bp = Blueprint('api', __name__)
 
@@ -16,13 +17,21 @@ def register():
     return jsonify({"message": "User created successfully"}), 201
 
 @bp.route('/login', methods=['POST'])
+@cross_origin(supports_credentials=True)
 def login():
     data = request.get_json()
+
     user = User.query.filter_by(email=data['email']).first()
     if user and check_password_hash(user.password_hash, data['password']):
         access_token = create_access_token(identity=user.id)
-        return jsonify(access_token=access_token)
-    return jsonify({"message": "Invalid credentials"}), 401
+        response = jsonify(access_token=access_token)
+        response.headers.add('Access-Control-Allow-Credentials', '*')
+        return response
+    
+    response = jsonify({"message": "Invalid credentials"})
+    response.headers.add('Access-Control-Allow-Credentials', '*')
+    print(response.headers)
+    return response, 401
 
 @bp.route('/tasks', methods=['GET'])
 @jwt_required()
