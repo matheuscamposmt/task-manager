@@ -1,26 +1,39 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { TextField, Button, Container, Typography, Box } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { TextField, Button, Container, Typography, Box, Alert, Paper } from '@mui/material';
+import { Link, useNavigate } from 'react-router-dom';
 
-const Register = () => {
+const Register = ({ handleRegisterSuccess }) => {
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
+  const [showError, setShowError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const response = await axios.post('http://localhost:5000/register', { username, password, email });
-      console.log(response.data);
+
+      if (response.status === 201) {
+        console.log(response.data);
+        handleRegisterSuccess(); // Trigger Snackbar
+        setShowError('');
+        navigate('/login');
+      }
+
     } catch (error) {
-      console.error(error);
+      if (error.response && error.response.status === 409) {
+        setShowError(error.response.data.message);
+      } else {
+        console.error('Register error:', error);
+      }
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8 }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Paper elevation={3} sx={{ width: '100%', maxWidth: 400, padding: 4, backgroundColor: '#ffffff' }}>
         <Typography variant="h4" gutterBottom>
           Registrar novo usuário
         </Typography>
@@ -32,6 +45,7 @@ const Register = () => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
+            variant="outlined"
           />
           <TextField
             label="Email"
@@ -41,6 +55,7 @@ const Register = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            variant="outlined"
           />
           <TextField
             label="Senha"
@@ -50,6 +65,7 @@ const Register = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            variant="outlined"
           />
           <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
             Cadastre-se
@@ -65,8 +81,13 @@ const Register = () => {
             Voltar
           </Button>
         </form>
-      </Box>
-    </Container>
+        {showError && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {showError}
+          </Alert>
+        )}
+      </Paper>
+    </Box>
   );
 };
 

@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Box } from '@mui/material';
+import { BrowserRouter as Router, Route, Routes, Navigate, Link } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Box, Snackbar, Slide, Button } from '@mui/material';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Register from './components/Register';
+import Home from './Home';
 import Login from './components/Login';
 import TaskManager from './components/TaskManager';
 import './App.css';
 import axios from 'axios';
 
+import logo from './assets/logo.webp';
+
+function SlideTransition(props) {
+  return <Slide {...props} direction="up" />;
+}
+
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [anchorEl, setAnchorEl] = useState(null);
   const [user, setUser] = useState('');
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success', 'error', 'warning', 'info'
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -26,7 +36,7 @@ const App = () => {
       const response = await axios.get('http://localhost:5000/user', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUser(response.data.name); // Ajuste conforme o campo de nome do usuário na resposta
+      setUser(response.data.username); // Adjust according to the user data structure
     } catch (error) {
       console.error(error);
     }
@@ -40,6 +50,16 @@ const App = () => {
     setAnchorEl(null);
   };
 
+  const handleSnackbarClose = () => {
+    setShowSnackbar(false);
+  };
+
+  const handleRegisterSuccess = () => {
+    setSnackbarSeverity('success');
+    setSnackbarMessage('Usuário registrado com sucesso');
+    setShowSnackbar(true);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -49,12 +69,29 @@ const App = () => {
   return (
     <Router>
       <Box sx={{ flexGrow: 1 }}>
-        {token && (
-          <AppBar position="static">
-            <Toolbar>
-              <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                Task Manager
+        <Snackbar
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          open={showSnackbar}
+          autoHideDuration={1000}
+          onClose={handleSnackbarClose}
+          message={snackbarMessage}
+          severity="success"
+          TransitionComponent={SlideTransition}
+        />
+        <AppBar position="fixed" style={{ backgroundColor: 'white', boxShadow: 'none', borderBottom: '1px solid #ddd' }}>
+          <Toolbar>
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography variant="h6" color="primary">
+                  <Box display="flex" alignItems="center" >
+                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <img src={logo} alt="Logo" style={{ maxHeight: 40, marginRight: 10, marginTop:9 }} />
+                    </Link>
+
+                    Gira
+                  </Box>
               </Typography>
+            </Box>
+            {token ? (
               <div>
                 <IconButton
                   size="large"
@@ -62,12 +99,12 @@ const App = () => {
                   aria-controls="menu-appbar"
                   aria-haspopup="true"
                   onClick={handleMenu}
-                  color="inherit"
+                  color="primary"
                 >
-                  <AccountCircle />
-                  <Typography variant="h6" sx={{ ml: 1 }}>
-                    {user}
-                  </Typography>
+                <Typography variant="body1" color="primary" style={{ marginRight: 10 }}>
+                  {user}
+                </Typography>
+                <AccountCircle ></AccountCircle>
                 </IconButton>
                 <Menu
                   id="menu-appbar"
@@ -84,17 +121,27 @@ const App = () => {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <MenuItem onClick={handleLogout}>Sair</MenuItem>
+                  <MenuItem onClick={handleClose}>Perfil</MenuItem>
+                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
                 </Menu>
               </div>
-            </Toolbar>
-          </AppBar>
-        )}
+            ) : (
+              <div>
+                <Button component={Link} to="/login" color="primary" sx={{ mr: 2 }}>
+                  Login
+                </Button>
+                <Button component={Link} to="/register" color="primary">
+                  Registrar
+                </Button>
+              </div>
+            )}
+          </Toolbar>
+        </AppBar>
         <Routes>
-          <Route path="/register" element={<Register />} />
+          <Route path="/register" element={<Register handleRegisterSuccess={handleRegisterSuccess} />} />
           <Route path="/login" element={<Login setToken={setToken} fetchUser={fetchUser} />} />
           <Route path="/tasks" element={token ? <TaskManager token={token} /> : <Navigate to="/login" />} />
-          <Route path="/" element={<Navigate to={token ? "/tasks" : "/login"} />} />
+          <Route path="/" element={<Home isAuthenticated={token}/>} />
         </Routes>
       </Box>
     </Router>
