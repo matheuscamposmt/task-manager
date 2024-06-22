@@ -1,0 +1,88 @@
+.task {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #fff;
+  }
+  
+  .task h3 {
+    margin: 0;
+    font-size: 1.5em;
+  }
+  
+  .task p {
+    margin: 5px 0;
+  }
+  
+  .task-edit input,
+  .task-edit textarea {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .task-edit button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .task-edit button:hover {
+    background-color: #0056b3;
+  }
+  
+  .task-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  
+  .task-actions button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .task-actions button:nth-child(1) {
+    background-color: #ffc107;
+    color: #fff;
+  }
+  
+  .task-actions button:nth-child(1):hover {
+    background-color: #e0a800;
+  }
+  
+  .task-actions button:nth-child(2) {
+    background-color: #28a745;
+    color: #fff;
+  }
+  
+  .task-actions button:nth-child(2):hover {
+    background-color: #218838;
+  }
+  
+  .task-actions button:nth-child(3) {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  .task-actions button:nth-child(3):hover {
+    background-color: #0056b3;
+  }
+  
+  .task-actions button:nth-child(4) {
+    background-color: #dc3545;
+    color: #fff;
+  }
+  
+  .task-actions button:nth-child(4):hover {
+    background-color: #c82333;
+  }
+  

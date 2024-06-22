@@ -1,0 +1,86 @@
+.task-manager {
+  padding: 20px;
+  width:80%;
+  /* align*/
+  margin: 0 auto;
+}
+
+.task-manager-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.task-list {
+  margin-top: 20px;
+
+}
+
+.task-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-form input, .task-form textarea {
+  margin-bottom: 10px;
+}
+
+.task-card {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.task-card h3 {
+  margin: 0;
+  margin-bottom: 5px;
+}
+
+.task-card p {
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+.task-card button {
+  margin-right: 5px;
+}
+
+.task-card .actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.task-manager-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.task-manager-filter {
+  display: flex;
+  align-items: center;
+}
+
+.task-list button {
+  padding: 10px;
+  margin: 5px 0;
+}
+
+.task-list button:nth-child(2) {
+  background-color: #ffffff;
+}
+
+.task-list button:nth-child(3) {
+  background-color: #17a2b8;
+}
+
+.task-list button:nth-child(4) {
+  background-color: #f80019;
+}
+
+.task-list select {
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}

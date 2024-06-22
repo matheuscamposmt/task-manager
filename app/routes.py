@@ -4,6 +4,7 @@ from .models import User, Task
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_cors import cross_origin
+from datetime import datetime
 
 bp = Blueprint('api', __name__)
 
@@ -34,8 +35,6 @@ def login():
         return response
     
     response = jsonify({"message": "Invalid credentials"})
-    response.headers.add('Access-Control-Allow-Credentials', '*')
-    print(response.headers)
     return response, 401
 
 @bp.route('/tasks', methods=['GET'])
@@ -53,6 +52,9 @@ def create_task():
     new_task = Task(
         title=data['title'],
         description=data.get('description'),
+        assigned_to=data.get('assigned_to'),
+        # type date from react to datetime
+        deadline=datetime.strptime(data.get('deadline'), '%Y-%m-%d'),
         user_id=current_user_id
     )
     db.session.add(new_task)

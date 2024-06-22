@@ -11,9 +11,10 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    status = db.Column(db.String(20), default='pendente')
+    status = db.Column(db.String(20), default='todo')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     assigned_to = db.Column(db.Integer, db.ForeignKey('user.id'))
+    deadline = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
 
@@ -25,6 +26,7 @@ class Task(db.Model):
             'status': self.status,
             'user_id': self.user_id,
             'assigned_to': self.assigned_to,
+            'deadline': self.deadline.strftime('%d/%m/%Y') if self.deadline else None,
             'created_at': self.created_at,
             'updated_at': self.updated_at,
         }
