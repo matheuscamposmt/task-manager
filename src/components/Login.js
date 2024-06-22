@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { TextField, Button, Container, Typography, Box, Snackbar } from '@mui/material';
+import { TextField, Button, Container, Typography, Box, Alert, Paper } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Login = ({ setToken, fetchUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showError, setShowError] = useState(false); // State for displaying error
   const navigate = useNavigate(); // Hook para navegação
 
   // navigate to /tasks if there is a token
@@ -23,18 +24,18 @@ const Login = ({ setToken, fetchUser }) => {
       fetchUser(token); // Obtém os detalhes do usuário
       navigate('/tasks'); // Redirecionar para a página de tarefas
     } catch (error) {
-      console.error(error);
-      if (error.response.status === 401) {
-        // use material-ui snackbar to show error message
-        alert('Invalid email or password');
-
+      if (error.response && error.response.status === 401) {
+        setShowError(true); // Show the error alert
+      } else {
+        // Handle other errors if needed
+        console.error('Login error:', error);
       }
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8 }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Paper elevation={3} sx={{ width: '100%', maxWidth: 400, padding: 4, backgroundColor: '#ffffff' }}>
         <Typography variant="h4" gutterBottom>
           Login
         </Typography>
@@ -47,6 +48,7 @@ const Login = ({ setToken, fetchUser }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            variant="outlined"
           />
           <TextField
             label="Senha"
@@ -56,8 +58,9 @@ const Login = ({ setToken, fetchUser }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            variant="outlined"
           />
-          <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
+          <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 3 }}>
             Login
           </Button>
           <Button
@@ -71,8 +74,13 @@ const Login = ({ setToken, fetchUser }) => {
             Registrar
           </Button>
         </form>
-      </Box>
-    </Container>
+        {showError && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            Email ou senha inválidos. Por favor, tente novamente.
+          </Alert>
+        )}
+      </Paper>
+    </Box>
   );
 };
 
