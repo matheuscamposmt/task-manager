@@ -4,9 +4,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  Button, TextField, Modal, Box, IconButton, MenuItem, Select, InputLabel, FormControl
+  Button, TextField, Modal, Box, IconButton, MenuItem, Select, InputLabel, FormControl,
+  Drawer, List, ListItem, ListItemText, ListItemButton, Divider
 } from '@mui/material';
-import { Add, Edit, Delete } from '@mui/icons-material';
+import { Add, Edit, Delete, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon } from '@mui/icons-material';
 import './TaskManager.css';
 
 const style = {
@@ -28,14 +29,29 @@ const TaskManager = ({ token }) => {
   const [filter, setFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
+    fetchGroups();
     fetchTasks();
-  }, []);
+  }, [selectedGroup]);
+
+  const fetchGroups = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/groups', { headers: { Authorization: `Bearer ${token}` } });
+      setGroups(response.data);
+      if (response.data.length > 0) setSelectedGroup(response.data[0].id);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const fetchTasks = async () => {
+    if (!selectedGroup) return;
     try {
-      const response = await axios.get('http://localhost:5000/tasks', { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.get(`http://localhost:5000/tasks?group_id=${selectedGroup}`, { headers: { Authorization: `Bearer ${token}` } });
       setTasks(response.data);
     } catch (error) {
       console.error(error);
@@ -45,7 +61,7 @@ const TaskManager = ({ token }) => {
   const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/tasks', newTask, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post('http://localhost:5000/tasks', { ...newTask, group_id: selectedGroup }, { headers: { Authorization: `Bearer ${token}` } });
       setTasks([...tasks, response.data]);
       setNewTask({ title: '', description: '', deadline: '', assigned_to: '', status: 'todo' });
       toast.success('Tarefa criada com sucesso!');
@@ -92,101 +108,69 @@ const TaskManager = ({ token }) => {
 
   const filteredTasks = tasks.filter(task => filter !== "all" ? task.status === filter : true);
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
-    <div className="task-manager">
-      <div className="task-manager-header">
-        <Button variant="contained" color="primary" startIcon={<Add />} onClick={() => setIsModalOpen(true)}>
-          Nova Tarefa
-        </Button>
-        <FormControl variant="outlined">
-          <InputLabel>Filtro</InputLabel>
-          <Select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            label="Status"
-          >
-            <MenuItem value="all">
-              <em>Todos</em>
-            </MenuItem>
-            <MenuItem value="todo">To-do</MenuItem>
-            <MenuItem value="in_progress">Em Progresso</MenuItem>
-            <MenuItem value="completed">Concluída</MenuItem>
-          </Select>
-        </FormControl>
-      </div>
-      <Modal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
-      >
-        <Box sx={style}>
-          <h2 id="modal-title">Criar Tarefa</h2>
-          <form onSubmit={handleCreateTask}>
-            <TextField
-              label="Título"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={newTask.title}
-              onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-              required
-            />
-            <TextField
-              label="Descrição"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={newTask.description}
-              onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-              required
-            />
-            <TextField
-              label="Prazo"
-              type="date"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={newTask.deadline}
-              onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })}
-              InputLabelProps={{ shrink: true }}
-              required
-            />
-            <TextField
-              label="Responsável"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={newTask.assigned_to}
-              onChange={(e) => setNewTask({ ...newTask, assigned_to: e.target.value })}
-              required
-            />
-            <Button type="submit" variant="contained" color="primary" fullWidth>
-              Adicionar Tarefa
-            </Button>
-            <Button color="secondary" fullWidth onClick={() => setIsModalOpen(false)}>
-              Cancelar
-            </Button>
-          </form>
-        </Box>
-      </Modal>
-      <Modal
-        open={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        aria-labelledby="edit-modal-title"
-        aria-describedby="edit-modal-description"
-      >
-        <Box sx={style}>
-          <h2 id="edit-modal-title">Editar Tarefa</h2>
-          {editTask && (
-            <form onSubmit={(e) => { e.preventDefault(); handleUpdateTask(editTask.id, editTask); }}>
+    <Box sx={{ display: 'flex' }}>
+      <Drawer variant="persistent" anchor="left" open={isSidebarOpen}>
+        <div>
+          <IconButton onClick={toggleSidebar}>
+            <ChevronLeftIcon />
+          </IconButton>
+        </div>
+        <Divider />
+        <List>
+          {groups.map((group) => (
+            <ListItem key={group.id} disablePadding>
+              <ListItemButton onClick={() => setSelectedGroup(group.id)}>
+                <ListItemText primary={group.name} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Drawer>
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <div className="task-manager-header">
+          <IconButton onClick={toggleSidebar} edge="start" color="inherit" aria-label="menu">
+            {isSidebarOpen ? <ChevronLeftIcon /> : <MenuIcon />}
+          </IconButton>
+          <Button variant="contained" color="primary" startIcon={<Add />} onClick={() => setIsModalOpen(true)}>
+            Nova Tarefa
+          </Button>
+          <FormControl variant="outlined">
+            <InputLabel>Filtro</InputLabel>
+            <Select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              label="Status"
+            >
+              <MenuItem value="all">
+                <em>Todos</em>
+              </MenuItem>
+              <MenuItem value="todo">To-do</MenuItem>
+              <MenuItem value="in_progress">Em Progresso</MenuItem>
+              <MenuItem value="completed">Concluída</MenuItem>
+            </Select>
+          </FormControl>
+        </div>
+        <Modal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          aria-labelledby="modal-title"
+          aria-describedby="modal-description"
+        >
+          <Box sx={style}>
+            <h2 id="modal-title">Criar Tarefa</h2>
+            <form onSubmit={handleCreateTask}>
               <TextField
                 label="Título"
                 variant="outlined"
                 fullWidth
                 margin="normal"
-                value={editTask.title}
-                onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
+                value={newTask.title}
+                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                 required
               />
               <TextField
@@ -194,8 +178,8 @@ const TaskManager = ({ token }) => {
                 variant="outlined"
                 fullWidth
                 margin="normal"
-                value={editTask.description}
-                onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
+                value={newTask.description}
+                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                 required
               />
               <TextField
@@ -204,8 +188,8 @@ const TaskManager = ({ token }) => {
                 variant="outlined"
                 fullWidth
                 margin="normal"
-                value={editTask.deadline}
-                onChange={(e) => setEditTask({ ...editTask, deadline: e.target.value })}
+                value={newTask.deadline}
+                onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })}
                 InputLabelProps={{ shrink: true }}
                 required
               />
@@ -214,65 +198,125 @@ const TaskManager = ({ token }) => {
                 variant="outlined"
                 fullWidth
                 margin="normal"
-                value={editTask.assigned_to}
-                onChange={(e) => setEditTask({ ...editTask, assigned_to: e.target.value })}
+                value={newTask.assigned_to}
+                onChange={(e) => setNewTask({ ...newTask, assigned_to: e.target.value })}
                 required
               />
               <Button type="submit" variant="contained" color="primary" fullWidth>
-                Atualizar Tarefa
+                Adicionar Tarefa
               </Button>
-              <Button color="secondary" fullWidth onClick={() => setIsEditModalOpen(false)}>
+              <Button color="secondary" fullWidth onClick={() => setIsModalOpen(false)}>
                 Cancelar
               </Button>
             </form>
-          )}
-        </Box>
-      </Modal>
-      <TableContainer component={Paper} className="task-list">
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>Título</TableCell>
-              <TableCell>Prazo</TableCell>
-              <TableCell>Responsável</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredTasks.map(task => (
-              <TableRow key={task.id}>
-                <TableCell>{task.title}</TableCell>
-                <TableCell>{task.deadline}</TableCell>
-                <TableCell>{task.assigned_to}</TableCell>
-                <TableCell>
-                  <FormControl fullWidth>
-                    <Select
-                      value={task.status}
-                      onChange={(e) => handleStatusUpdate(task.id, e.target.value)}
-                    >
-                      <MenuItem value="todo">To-do</MenuItem>
-                      <MenuItem value="in_progress">Em Progresso</MenuItem>
-                      <MenuItem value="completed">Concluída</MenuItem>
-                    </Select>
-                  </FormControl>
-                </TableCell>
-                <TableCell>
-                  <IconButton color="primary" onClick={() => { setEditTask(task); setIsEditModalOpen(true); }}>
-                    <Edit />
-                  </IconButton>
-                  <IconButton color="secondary" onClick={() => handleDeleteTask(task.id)}>
-                    <Delete />
-                  </IconButton>
-                </TableCell>
+          </Box>
+        </Modal>
+        <Modal
+          open={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          aria-labelledby="edit-modal-title"
+          aria-describedby="edit-modal-description"
+        >
+          <Box sx={style}>
+            <h2 id="edit-modal-title">Editar Tarefa</h2>
+            {editTask && (
+              <form onSubmit={(e) => { e.preventDefault(); handleUpdateTask(editTask.id, editTask); }}>
+                <TextField
+                  label="Título"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  value={editTask.title}
+                  onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
+                  required
+                />
+                <TextField
+                  label="Descrição"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  value={editTask.description}
+                  onChange={(e) => setEditTask({ ...editTask, description: e.target.value
+                  })}
+                  required
+                />
+                <TextField
+                  label="Prazo"
+                  type="date"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  value={editTask.deadline}
+                  onChange={(e) => setEditTask({ ...editTask, deadline: e.target.value })}
+                  InputLabelProps={{ shrink: true }}
+                  required
+                />
+                <TextField
+                  label="Responsável"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  value={editTask.assigned_to}
+                  onChange={(e) => setEditTask({ ...editTask, assigned_to: e.target.value })}
+                  required
+                />
+                <Button type="submit" variant="contained" color="primary" fullWidth>
+                  Atualizar Tarefa
+                </Button>
+                <Button color="secondary" fullWidth onClick={() => setIsEditModalOpen(false)}>
+                  Cancelar
+                </Button>
+              </form>
+            )}
+          </Box>
+        </Modal>
+        <TableContainer component={Paper} className="task-list">
+          <Table sx={{ minWidth: 650}}>
+            <TableHead>
+              <TableRow>
+                <TableCell>Título</TableCell>
+                <TableCell>Prazo</TableCell>
+                <TableCell>Responsável</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Ações</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <ToastContainer />
-    </div>
-  );
-};
-
-export default TaskManager;
+            </TableHead>
+            <TableBody>
+              {filteredTasks.map(task => (
+                <TableRow key={task.id}>
+                  <TableCell>{task.title}</TableCell>
+                  <TableCell>{task.deadline}</TableCell>
+                  <TableCell>{task.assigned_to}</TableCell>
+                  <TableCell>
+                    <FormControl fullWidth>
+                      <Select
+                        value={task.status}
+                        onChange={(e) => handleStatusUpdate(task.id, e.target.value)}
+                      >
+                        <MenuItem value="todo">To-do</MenuItem>
+                        <MenuItem value="in_progress">Em Progresso</MenuItem>
+                        <MenuItem value="completed">Concluída</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </TableCell>
+                  <TableCell>
+                    <IconButton color="primary" onClick={() => { setEditTask(task); setIsEditModalOpen(true); }}>
+                      <Edit />
+                    </IconButton>
+                    <IconButton color="secondary" onClick={() => handleDeleteTask(task.id)}>
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <ToastContainer />
+      </Box>
+    </Box>
+    );
+  };
+  
+  export default TaskManager;
+  
