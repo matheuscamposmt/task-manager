@@ -52,6 +52,7 @@ def login():
 
 def is_user_in_group(user_id, group_id):
     group = Group.query.get(group_id)
+
     if group and any(user.id == user_id for user in group.users):
         return True
     return False
@@ -62,7 +63,7 @@ def get_tasks():
     current_user_id = get_jwt_identity()
 
     group_id = request.args.get('group_id')
-    
+
     if not is_user_in_group(current_user_id, group_id):
         return jsonify({"message": "Permission denied"}), 403
     tasks = Task.query.filter_by(group_id=group_id).all()
@@ -74,7 +75,7 @@ def create_task():
     current_user_id = get_jwt_identity()
     data = request.get_json()
 
-    group_id = request.args.get('group_id')
+    group_id = data['group_id']
     if not is_user_in_group(current_user_id, group_id):
         return jsonify({"message": "Permission denied"}), 403
     new_task = Task(

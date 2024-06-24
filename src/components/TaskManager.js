@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  Button, TextField, Modal, Box, IconButton, MenuItem, Select, InputLabel, FormControl,
-  Drawer, List, ListItem, ListItemText, ListItemButton, Divider
+  Button, TextField, Modal, Box, IconButton, MenuItem, Select, InputLabel, FormControl, Alert,
 } from '@mui/material';
 import { Add, Edit, Delete, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon } from '@mui/icons-material';
+import { DatePicker } from '@mui/x-date-pickers';
 import './TaskManager.css';
 
 const style = {
@@ -22,34 +20,24 @@ const style = {
   p: 4,
 };
 
-const TaskManager = ({ token }) => {
+const TaskManager = ({ token, selectedGroup }) => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState({ title: '', description: '', deadline: '', assigned_to: '', status: 'todo' });
   const [editTask, setEditTask] = useState(null);
   const [filter, setFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [groups, setGroups] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [alert, setAlert] = useState({ type: '', message: '', open: false });
 
   useEffect(() => {
-    fetchGroups();
-    fetchTasks();
+    if (selectedGroup) {
+      fetchTasks(selectedGroup);
+    }
   }, [selectedGroup]);
 
-  const fetchGroups = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/groups', { headers: { Authorization: `Bearer ${token}` } });
-      setGroups(response.data);
-      if (response.data.length > 0) setSelectedGroup(response.data[0].id);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   const fetchTasks = async () => {
-    if (!selectedGroup) return;
+    if (!selectedGroup)
+      return;
     try {
       const response = await axios.get(`http://localhost:5000/tasks?group_id=${selectedGroup}`, { headers: { Authorization: `Bearer ${token}` } });
       setTasks(response.data);
@@ -61,14 +49,13 @@ const TaskManager = ({ token }) => {
   const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
+      console.log(selectedGroup);
       const response = await axios.post('http://localhost:5000/tasks', { ...newTask, group_id: selectedGroup }, { headers: { Authorization: `Bearer ${token}` } });
       setTasks([...tasks, response.data]);
       setNewTask({ title: '', description: '', deadline: '', assigned_to: '', status: 'todo' });
-      toast.success('Tarefa criada com sucesso!');
       setIsModalOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error('Falha ao criar tarefa.');
     }
   };
 
@@ -76,11 +63,11 @@ const TaskManager = ({ token }) => {
     try {
       const response = await axios.put(`http://localhost:5000/tasks/${id}`, updatedTask, { headers: { Authorization: `Bearer ${token}` } });
       setTasks(tasks.map(task => (task.id === id ? response.data : task)));
-      toast.success('Tarefa atualizada com sucesso!');
+      setAlert({ type: 'success', message: 'Tarefa atualizada com sucesso!', open: true });
       setIsEditModalOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error('Falha ao atualizar tarefa.');
+      setAlert({ type: 'error', message: 'Falha ao atualizar tarefa.', open: true });
     }
   };
 
@@ -88,10 +75,10 @@ const TaskManager = ({ token }) => {
     try {
       await axios.delete(`http://localhost:5000/tasks/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       setTasks(tasks.filter(task => task.id !== id));
-      toast.success('Tarefa excluída com sucesso!');
+      setAlert({ type: 'success', message: 'Tarefa excluída com sucesso!', open: true });
     } catch (error) {
       console.error(error);
-      toast.error('Falha ao excluir tarefa.');
+      setAlert({ type: 'error', message: 'Falha ao excluir tarefa.', open: true });
     }
   };
 
@@ -99,44 +86,27 @@ const TaskManager = ({ token }) => {
     try {
       const response = await axios.put(`http://localhost:5000/tasks/${id}`, { status }, { headers: { Authorization: `Bearer ${token}` } });
       setTasks(tasks.map(task => (task.id === id ? response.data : task)));
-      toast.success('Status da tarefa atualizado com sucesso!');
+      setAlert({ type: 'success', message: 'Status da tarefa atualizado com sucesso!', open: true });
     } catch (error) {
       console.error(error);
-      toast.error('Falha ao atualizar o status da tarefa.');
+      setAlert({ type: 'error', message: 'Falha ao atualizar o status da tarefa.', open: true });
     }
   };
 
   const filteredTasks = tasks.filter(task => filter !== "all" ? task.status === filter : true);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
   return (
     <Box sx={{ display: 'flex' }}>
-      <Drawer variant="persistent" anchor="left" open={isSidebarOpen}>
-        <div>
-          <IconButton onClick={toggleSidebar}>
-            <ChevronLeftIcon />
-          </IconButton>
-        </div>
-        <Divider />
-        <List>
-          {groups.map((group) => (
-            <ListItem key={group.id} disablePadding>
-              <ListItemButton onClick={() => setSelectedGroup(group.id)}>
-                <ListItemText primary={group.name} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        {alert.open && (
+          <Alert severity={alert.type} onClose={() => setAlert({ ...alert, open: false })}>
+            {alert.message}
+          </Alert>
+        )}
+
         <div className="task-manager-header">
-          <IconButton onClick={toggleSidebar} edge="start" color="inherit" aria-label="menu">
-            {isSidebarOpen ? <ChevronLeftIcon /> : <MenuIcon />}
-          </IconButton>
-          <Button variant="contained" color="primary" startIcon={<Add />} onClick={() => setIsModalOpen(true)}>
+
+          <Button variant="contained" color="success" startIcon={<Add />} onClick={() => setIsModalOpen(true)}>
             Nova Tarefa
           </Button>
           <FormControl variant="outlined">
@@ -205,7 +175,7 @@ const TaskManager = ({ token }) => {
               <Button type="submit" variant="contained" color="primary" fullWidth>
                 Adicionar Tarefa
               </Button>
-              <Button color="secondary" fullWidth onClick={() => setIsModalOpen(false)}>
+              <Button color="error" fullWidth onClick={() => setIsModalOpen(false)}>
                 Cancelar
               </Button>
             </form>
@@ -236,8 +206,7 @@ const TaskManager = ({ token }) => {
                   fullWidth
                   margin="normal"
                   value={editTask.description}
-                  onChange={(e) => setEditTask({ ...editTask, description: e.target.value
-                  })}
+                  onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
                   required
                 />
                 <TextField
@@ -271,7 +240,7 @@ const TaskManager = ({ token }) => {
           </Box>
         </Modal>
         <TableContainer component={Paper} className="task-list">
-          <Table sx={{ minWidth: 650}}>
+          <Table sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow>
                 <TableCell>Título</TableCell>
@@ -303,7 +272,7 @@ const TaskManager = ({ token }) => {
                     <IconButton color="primary" onClick={() => { setEditTask(task); setIsEditModalOpen(true); }}>
                       <Edit />
                     </IconButton>
-                    <IconButton color="secondary" onClick={() => handleDeleteTask(task.id)}>
+                    <IconButton color="error" onClick={() => handleDeleteTask(task.id)}>
                       <Delete />
                     </IconButton>
                   </TableCell>
@@ -312,11 +281,9 @@ const TaskManager = ({ token }) => {
             </TableBody>
           </Table>
         </TableContainer>
-        <ToastContainer />
       </Box>
     </Box>
-    );
-  };
-  
-  export default TaskManager;
-  
+  );
+};
+
+export default TaskManager;
