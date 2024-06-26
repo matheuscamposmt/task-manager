@@ -3,9 +3,9 @@ import axios from 'axios';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
   Button, TextField, Modal, Box, IconButton, MenuItem, Select, InputLabel, FormControl, Alert,
+  Typography, Tooltip
 } from '@mui/material';
-import { Add, Edit, Delete, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon } from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers';
+import { Add, Edit, Delete, ContentCopy as ContentCopyIcon } from '@mui/icons-material';
 import './TaskManager.css';
 
 const style = {
@@ -28,12 +28,23 @@ const TaskManager = ({ token, selectedGroup }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [alert, setAlert] = useState({ type: '', message: '', open: false });
-
+  const [groupName, setGroupName] = useState('');
+  
   useEffect(() => {
     if (selectedGroup) {
+      fetchGroupName(selectedGroup);
       fetchTasks(selectedGroup);
     }
   }, [selectedGroup]);
+
+  const fetchGroupName = async (groupId) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/groups/${groupId}`, { headers: { Authorization: `Bearer ${token}` } });
+      setGroupName(response.data.name);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const fetchTasks = async () => {
     if (!selectedGroup)
@@ -49,7 +60,6 @@ const TaskManager = ({ token, selectedGroup }) => {
   const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
-      console.log(selectedGroup);
       const response = await axios.post('http://localhost:5000/tasks', { ...newTask, group_id: selectedGroup }, { headers: { Authorization: `Bearer ${token}` } });
       setTasks([...tasks, response.data]);
       setNewTask({ title: '', description: '', deadline: '', assigned_to: '', status: 'todo' });
@@ -93,6 +103,15 @@ const TaskManager = ({ token, selectedGroup }) => {
     }
   };
 
+  const handleCopyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setAlert({ type: 'success', message: 'Código do grupo copiado!', open: true });
+    }, (error) => {
+      console.error(error);
+      setAlert({ type: 'error', message: 'Falha ao copiar o código do grupo.', open: true });
+    });
+  };
+
   const filteredTasks = tasks.filter(task => filter !== "all" ? task.status === filter : true);
 
   return (
@@ -104,8 +123,16 @@ const TaskManager = ({ token, selectedGroup }) => {
           </Alert>
         )}
 
-        <div className="task-manager-header">
+        <Typography variant="h4" component="div" sx={{ mb: 2 }}>
+          {groupName} - <Typography variant="h6" component="span">{selectedGroup}</Typography>
+          <Tooltip title="Copiar código do grupo">
+            <IconButton onClick={() => handleCopyToClipboard(selectedGroup)}>
+              <ContentCopyIcon />
+            </IconButton>
+          </Tooltip>
+        </Typography>
 
+        <div className="task-manager-header">
           <Button variant="contained" color="success" startIcon={<Add />} onClick={() => setIsModalOpen(true)}>
             Nova Tarefa
           </Button>
@@ -125,6 +152,7 @@ const TaskManager = ({ token, selectedGroup }) => {
             </Select>
           </FormControl>
         </div>
+
         <Modal
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
@@ -181,6 +209,7 @@ const TaskManager = ({ token, selectedGroup }) => {
             </form>
           </Box>
         </Modal>
+
         <Modal
           open={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
@@ -229,21 +258,35 @@ const TaskManager = ({ token, selectedGroup }) => {
                   onChange={(e) => setEditTask({ ...editTask, assigned_to: e.target.value })}
                   required
                 />
+                <FormControl variant="outlined" fullWidth margin="normal">
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    value={editTask.status}
+                    onChange={(e) => setEditTask({ ...editTask, status: e.target.value })}
+                    label="Status"
+                  >
+                    <MenuItem value="todo">To-do</MenuItem>
+                    <MenuItem value="in_progress">Em Progresso</MenuItem>
+                    <MenuItem value="completed">Concluída</MenuItem>
+                  </Select>
+                </FormControl>
                 <Button type="submit" variant="contained" color="primary" fullWidth>
                   Atualizar Tarefa
                 </Button>
-                <Button color="secondary" fullWidth onClick={() => setIsEditModalOpen(false)}>
+                <Button color="error" fullWidth onClick={() => setIsEditModalOpen(false)}>
                   Cancelar
                 </Button>
               </form>
             )}
           </Box>
         </Modal>
-        <TableContainer component={Paper} className="task-list">
-          <Table sx={{ minWidth: 650 }}>
+
+        <TableContainer component={Paper}>
+          <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Título</TableCell>
+                <TableCell>Descrição</TableCell>
                 <TableCell>Prazo</TableCell>
                 <TableCell>Responsável</TableCell>
                 <TableCell>Status</TableCell>
@@ -251,16 +294,18 @@ const TaskManager = ({ token, selectedGroup }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredTasks.map(task => (
+              {filteredTasks.map((task) => (
                 <TableRow key={task.id}>
                   <TableCell>{task.title}</TableCell>
+                  <TableCell>{task.description}</TableCell>
                   <TableCell>{task.deadline}</TableCell>
                   <TableCell>{task.assigned_to}</TableCell>
                   <TableCell>
-                    <FormControl fullWidth>
+                    <FormControl variant="outlined" fullWidth>
                       <Select
                         value={task.status}
                         onChange={(e) => handleStatusUpdate(task.id, e.target.value)}
+                        displayEmpty
                       >
                         <MenuItem value="todo">To-do</MenuItem>
                         <MenuItem value="in_progress">Em Progresso</MenuItem>
@@ -269,10 +314,10 @@ const TaskManager = ({ token, selectedGroup }) => {
                     </FormControl>
                   </TableCell>
                   <TableCell>
-                    <IconButton color="primary" onClick={() => { setEditTask(task); setIsEditModalOpen(true); }}>
+                    <IconButton onClick={() => { setEditTask(task); setIsEditModalOpen(true); }}>
                       <Edit />
                     </IconButton>
-                    <IconButton color="error" onClick={() => handleDeleteTask(task.id)}>
+                    <IconButton onClick={() => handleDeleteTask(task.id)}>
                       <Delete />
                     </IconButton>
                   </TableCell>

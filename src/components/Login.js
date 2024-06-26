@@ -3,7 +3,7 @@ import axios from 'axios';
 import { TextField, Button, Container, Typography, Box, Alert, Paper } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 
-const Login = ({ setToken, fetchUser }) => {
+const Login = ({ setToken, fetchUser, fetchGroups }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showError, setShowError] = useState(false); // State for displaying error
@@ -21,7 +21,8 @@ const Login = ({ setToken, fetchUser }) => {
       const token = response.data.access_token;
       localStorage.setItem('token', token); // Salva o token no localStorage
       setToken(token);
-      fetchUser(token); // Obtém os detalhes do usuário
+      await fetchUser(response.data.token);
+      await fetchGroups(response.data.token);
       navigate('/tasks'); // Redirecionar para a página de tarefas
     } catch (error) {
       if (error.response && error.response.status === 401) {

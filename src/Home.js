@@ -43,7 +43,7 @@ const HomePage = ({ isAuthenticated }) => {
       <Grid item xs={12} textAlign="center" style={{ marginTop: 'auto', paddingBottom: 0 }}>
         <Paper elevation={3} style={{ padding: 20, backgroundColor: '#fff' }}>
           <Typography variant="body2" color="textSecondary">
-            Desenvolvido por Matheus de Mattos e Douglas
+            Desenvolvido por Matheus de Mattos e Douglas Souza
           </Typography>
         </Paper>
       </Grid>

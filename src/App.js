@@ -55,6 +55,7 @@ const App = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setGroups(response.data);
+
       if (response.data.length > 0) setSelectedGroup(response.data[0].id);
     } catch (error) {
       console.error(error);
@@ -98,11 +99,13 @@ const App = () => {
       );
       setGroups([...groups, response.data]);
       setSelectedGroup(response.data.id);
+      toggleSidebar();
       setNewGroupName('');
       setIsJoinGroupModalOpen(false);
       setSnackbarSeverity('success');
       setSnackbarMessage('Grupo criado com sucesso');
       setShowSnackbar(true);
+      //close sidebar
     } catch (error) {
       setSnackbarSeverity('error');
       setSnackbarMessage('Erro ao criar grupo');

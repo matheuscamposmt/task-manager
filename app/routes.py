@@ -151,6 +151,21 @@ def get_groups():
     groups = user.groups
     return jsonify([{'id': group.id, 'name': group.name} for group in groups])
 
+# Route to get the groupname
+@bp.route('/groups/<int:group_id>', methods=['GET'])
+@jwt_required()
+def get_group(group_id):
+    current_user_id = get_jwt_identity()
+    if not is_user_in_group(current_user_id, group_id):
+        return jsonify({"message": "Permission denied"}), 403
+    
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({"message": "Group not found"}), 404
+
+    return jsonify({"id": group.id, "name": group.name})
+
+
 # Route to get tasks for a specific group
 @bp.route('/groups/<int:group_id>/tasks', methods=['GET'])
 @jwt_required()

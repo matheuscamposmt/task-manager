@@ -1,16 +1,25 @@
-.task-manager {
-  padding: 20px;
-  width:80%;
-  /* align*/
-  margin: 0 auto;
-}
-
 .task-manager-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
-  margin-top: 100px;
 }
+
+.task-manager-header h1 {
+  display: flex;
+  align-items: center;
+}
+
+.task-manager-header h1 span {
+  margin-left: 10px;
+  font-size: 0.8em;
+  color: #666;
+}
+
+.task-table {
+  margin-top: 20px;
+}
+
 
 .task-manager-content {
   flex-grow: 1;
